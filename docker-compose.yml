@@ -1,0 +1,58 @@
+version: "3.9"
+
+services:
+  frontend:
+    build:
+      context: ./greenX-assessment-tool-frontend
+      dockerfile: Dockerfile
+    container_name: frontend_app
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./greenX-assessment-tool-frontend:/usr/src/app   # Mount host code → container
+      - /usr/src/app/node_modules                       # node_modules container ke andar hi
+    networks:
+      - app_network
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./GreenX_DCS_Assesment_Tool_Backend
+      dockerfile: Dockerfile
+    container_name: backend_app
+    environment:
+      DB_HOST: mysql_db
+      DB_PORT: 3306
+      DB_USER: backend_user
+      DB_PASSWORD: backend_pass
+      DB_NAME: greenx_db
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mysql_db
+    networks:
+      - app_network
+
+  mysql_db:
+    image: mysql:8.0
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: greenx_db
+      MYSQL_USER: backend_user
+      MYSQL_PASSWORD: backend_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - app_network
+
+volumes:
+  mysql_data:
+
+networks:
+  app_network:
+    driver: bridge
